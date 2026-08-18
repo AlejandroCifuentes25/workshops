@@ -1,14 +1,14 @@
 from django.core.management.base import BaseCommand
-from movie.models import Movie
+from news.models import News
 import csv
-
+from datetime import datetime
 
 class Command(BaseCommand):
-    help = 'Load movies from movies_initial.csv into the Movie model'
+    help = 'Load news from Fake.csv into the News model'
 
     def handle(self, *args, **kwargs):
 
-        csv_file_path = 'movie/management/commands/movies_initial.csv'
+        csv_file_path = 'news/management/commands/Fake.csv'
 
         created_count = 0
         updated_count = 0
@@ -20,18 +20,24 @@ class Command(BaseCommand):
 
                 cont = 0 
 
-                for movie in reader:
+                for row in reader:
 
-                    if cont == 100:
+                    if cont == 5:
                         break
 
-                    obj, created = Movie.objects.update_or_create(
-                        title=movie['title'],
+                    # Convertir la fecha desde el texto del CSV (ej: "December 31, 2017")
+                    date_str = row['date'].strip()
+                    try:
+                        formatted_date = datetime.strptime(date_str, '%B %d, %Y').date()
+                    except ValueError:
+                        # Si alguna fila tiene un formato de fecha distinto
+                        formatted_date = datetime.now().date()
+
+                    obj, created = News.objects.update_or_create(
+                        headline=row['title'],
                         defaults={
-                            'image': 'movie/images/default.jpg',
-                            'genre': movie['genre'],
-                            'year': movie['year'],
-                            'description': movie['plot'],
+                            'body': row['text'],
+                            'date': formatted_date,
                         }
                     )
 
